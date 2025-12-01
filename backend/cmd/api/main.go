@@ -8,6 +8,7 @@ import (
     "github.com/joho/godotenv"
     "github.com/go-chi/chi/v5"
     "github.com/go-chi/chi/v5/middleware"
+    "github.com/go-chi/cors"
 
     "telegraph/internal/acl"
 	"telegraph/internal/audit"
@@ -17,6 +18,7 @@ import (
     "telegraph/internal/database"
 	"telegraph/internal/messages"
     "telegraph/internal/users"
+    "telegraph/internal/ws"
     mw "telegraph/internal/middleware"
 )
 
@@ -54,10 +56,14 @@ func main() {
 	mfaMgr := auth.NewMFAManager(mfaRepo, smtpSender)
 	auditLogger := audit.NewLogger(db)
 
+	// WebSocket Hub
+	hub := ws.NewHub()
+	go hub.Run()
+
 	// Services
 	userSvc := users.NewUserService(userRepo)
 	channelSvc := channels.NewChannelService(channelRepo, userRepo, auditLogger)
-	messageSvc := messages.NewMessageService(messageRepo, channelRepo, auditLogger)
+	messageSvc := messages.NewMessageService(messageRepo, channelRepo, auditLogger, hub)
 
 	// Handlers
 	authHandler := auth.NewHandler(userSvc, refreshMgr, jwtMgr, mfaMgr)
@@ -69,6 +75,16 @@ func main() {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+	
+	// CORS middleware
+	r.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:5173", "http://localhost:3000"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: true,
+		MaxAge:           300,
+	}))
 
 	r.Route("/api/v1", func(api chi.Router) {
 
@@ -93,6 +109,12 @@ func main() {
 		api.Group(func(cr chi.Router) {
 			cr.Use(mw.JWTAuth(jwtMgr))
 			cr.Use(mw.LoadUser(userRepo))
+			
+			// WebSocket route
+			cr.Get("/ws", func(w http.ResponseWriter, r *http.Request) {
+				userID := users.UserIDFromContext(r.Context())
+				ws.ServeWs(hub, userID)(w, r)
+			})
 			
 			// Channel routes
 			cr.Mount("/channels", channelHandler.Routes())

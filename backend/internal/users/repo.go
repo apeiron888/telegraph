@@ -16,6 +16,7 @@ type UserRepo interface {
 	GetByID(ctx context.Context, id uuid.UUID) (*User, error)
 	Update(ctx context.Context, u *User) error
 	Delete(ctx context.Context, id uuid.UUID) error
+	Search(ctx context.Context, query string) ([]*User, error)
 }
 
 type mongoUserRepo struct {
@@ -105,3 +106,27 @@ func (r *mongoUserRepo) GetByEmailOrPhone(ctx context.Context, identifier string
 	}
 	return &user, nil
 }
+
+func (r *mongoUserRepo) Search(ctx context.Context, query string) ([]*User, error) {
+	filter := bson.M{
+		"$or": []bson.M{
+			{"username": bson.M{"$regex": query, "$options": "i"}},
+			{"email": bson.M{"$regex": query, "$options": "i"}},
+			{"phone": bson.M{"$regex": query, "$options": "i"}},
+		},
+	}
+
+	cursor, err := r.collection.Find(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var users []*User
+	if err := cursor.All(ctx, &users); err != nil {
+		return nil, err
+	}
+
+	return users, nil
+}
+

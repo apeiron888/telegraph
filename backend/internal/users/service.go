@@ -15,6 +15,7 @@ type UserService interface {
 	GetByEmailOrPhone(ctx context.Context, identifier string) (*User, error)
 	UpdateUser(ctx context.Context, u *User) error
 	DeleteUser(ctx context.Context, id uuid.UUID) error
+	SearchUsers(ctx context.Context, query string) ([]*User, error)
 }
 
 type userService struct {
@@ -77,3 +78,8 @@ func (s *userService) UpdateUser(ctx context.Context, u *User) error {
 func (s *userService) DeleteUser(ctx context.Context, id uuid.UUID) error {
 	return s.repo.Delete(ctx, id)
 }
+
+func (s *userService) SearchUsers(ctx context.Context, query string) ([]*User, error) {
+	return s.repo.Search(ctx, query)
+}
+

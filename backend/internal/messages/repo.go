@@ -14,8 +14,10 @@ type MessageRepo interface {
 	Create(ctx context.Context, m *Message) error
 	GetByID(ctx context.Context, id uuid.UUID) (*Message, error)
 	GetByChannelID(ctx context.Context, channelID uuid.UUID, limit, offset int) ([]*Message, error)
+	Update(ctx context.Context, m *Message) error
 	SoftDelete(ctx context.Context, id uuid.UUID) error
 	Delete(ctx context.Context, id uuid.UUID) error
+	CountAfter(ctx context.Context, channelID uuid.UUID, after time.Time) (int64, error)
 }
 
 type mongoMessageRepo struct {
@@ -70,6 +72,11 @@ func (r *mongoMessageRepo) GetByChannelID(ctx context.Context, channelID uuid.UU
 	return messages, nil
 }
 
+func (r *mongoMessageRepo) Update(ctx context.Context, m *Message) error {
+	_, err := r.collection.ReplaceOne(ctx, bson.M{"id": m.ID}, m)
+	return err
+}
+
 func (r *mongoMessageRepo) SoftDelete(ctx context.Context, id uuid.UUID) error {
 	update := bson.M{"$set": bson.M{"deleted": true}}
 	_, err := r.collection.UpdateOne(ctx, bson.M{"id": id}, update)
@@ -79,4 +86,13 @@ func (r *mongoMessageRepo) SoftDelete(ctx context.Context, id uuid.UUID) error {
 func (r *mongoMessageRepo) Delete(ctx context.Context, id uuid.UUID) error {
 	_, err := r.collection.DeleteOne(ctx, bson.M{"id": id})
 	return err
+}
+
+func (r *mongoMessageRepo) CountAfter(ctx context.Context, channelID uuid.UUID, after time.Time) (int64, error) {
+	filter := bson.M{
+		"channel_id": channelID,
+		"timestamp":  bson.M{"$gt": after},
+		"deleted":    false,
+	}
+	return r.collection.CountDocuments(ctx, filter)
 }

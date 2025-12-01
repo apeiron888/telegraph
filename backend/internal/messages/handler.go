@@ -27,7 +27,14 @@ func (h *Handler) Routes() chi.Router {
 	r.Get("/{channelId}/messages", h.GetMessages)
 
 	// Individual message operations
+	r.Put("/messages/{id}", h.EditMessage)
 	r.Delete("/messages/{id}", h.DeleteMessage)
+	r.Post("/messages/{id}/read", h.MarkAsRead)
+	r.Post("/messages/{id}/delivered", h.MarkAsDelivered)
+	
+	// Typing indicators
+	r.Post("/{channelId}/typing", h.SendTyping)
+	r.Get("/unread", h.GetUnreadCounts)
 
 	return r
 }
@@ -125,6 +132,122 @@ func (h *Handler) DeleteMessage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respondJSON(w, map[string]string{"message": "deleted"}, http.StatusOK)
+}
+
+func (h *Handler) EditMessage(w http.ResponseWriter, r *http.Request) {
+	messageID, err := uuid.Parse(chi.URLParam(r, "id"))
+	if err != nil {
+		respondError(w, "invalid_message_id", http.StatusBadRequest)
+		return
+	}
+
+	user, ok := middleware.GetUserFromContext(r.Context())
+	if !ok {
+		respondError(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	var req struct {
+		Content []byte `json:"content"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		respondError(w, "invalid_request", http.StatusBadRequest)
+		return
+	}
+
+	if err := h.service.EditMessage(r.Context(), messageID, user.ID, req.Content); err != nil {
+		respondError(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	respondJSON(w, map[string]string{"message": "edited"}, http.StatusOK)
+}
+
+func (h *Handler) MarkAsRead(w http.ResponseWriter, r *http.Request) {
+	messageID, err := uuid.Parse(chi.URLParam(r, "id"))
+	if err != nil {
+		respondError(w, "invalid_message_id", http.StatusBadRequest)
+		return
+	}
+
+	user, ok := middleware.GetUserFromContext(r.Context())
+	if !ok {
+		respondError(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	if err := h.service.MarkAsRead(r.Context(), messageID, user.ID); err != nil {
+		respondError(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	respondJSON(w, map[string]string{"status": "read"}, http.StatusOK)
+}
+
+func (h *Handler) MarkAsDelivered(w http.ResponseWriter, r *http.Request) {
+	messageID, err := uuid.Parse(chi.URLParam(r, "id"))
+	if err != nil {
+		respondError(w, "invalid_message_id", http.StatusBadRequest)
+		return
+	}
+
+	user, ok := middleware.GetUserFromContext(r.Context())
+	if !ok {
+		respondError(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	if err := h.service.MarkAsDelivered(r.Context(), messageID, user.ID); err != nil {
+		respondError(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	respondJSON(w, map[string]string{"status": "delivered"}, http.StatusOK)
+}
+
+func (h *Handler) SendTyping(w http.ResponseWriter, r *http.Request) {
+	channelID, err := uuid.Parse(chi.URLParam(r, "channelId"))
+	if err != nil {
+		respondError(w, "invalid_channel_id", http.StatusBadRequest)
+		return
+	}
+	
+	user, ok := middleware.GetUserFromContext(r.Context())
+	if !ok {
+		respondError(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	var req struct {
+		Typing bool `json:"typing"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		respondError(w, "invalid_request", http.StatusBadRequest)
+		return
+	}
+
+	if err := h.service.BroadcastTyping(r.Context(), user.ID, channelID, req.Typing); err != nil {
+		respondError(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	respondJSON(w, map[string]string{"status": "ok"}, http.StatusOK)
+}
+
+func (h *Handler) GetUnreadCounts(w http.ResponseWriter, r *http.Request) {
+	user, ok := middleware.GetUserFromContext(r.Context())
+	if !ok {
+		respondError(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	counts, err := h.service.GetUnreadCounts(r.Context(), user.ID)
+	if err != nil {
+		respondError(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	respondJSON(w, counts, http.StatusOK)
 }
 
 // Helper functions

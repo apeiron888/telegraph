@@ -21,6 +21,7 @@ func NewHandler(svc UserService, jwt *JWTManager) *Handler {
 func (h *Handler) Routes() http.Handler {
 	r := chi.NewRouter()
 	r.Post("/register", h.Register)
+	r.Get("/search", h.SearchUsers)
 	return r
 }
 
@@ -108,3 +109,40 @@ func (h *Handler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(204)
 }
+
+// SearchUsers searches for users by username, email, or phone
+func (h *Handler) SearchUsers(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query().Get("q")
+	if query == "" {
+		json.NewEncoder(w).Encode([]User{})
+		return
+	}
+
+	users, err := h.svc.SearchUsers(r.Context(), query)
+	if err != nil {
+		http.Error(w, "search_failed", 500)
+		return
+	}
+
+	// Return users without sensitive data
+	type UserResponse struct {
+		ID       string `json:"id"`
+		Username string `json:"username"`
+		Email    string `json:"email"`
+		Phone    string `json:"phone,omitempty"`
+	}
+
+	response := make([]UserResponse, 0, len(users))
+	for _, u := range users {
+		response = append(response, UserResponse{
+			ID:       u.ID.String(),
+			Username: u.Username,
+			Email:    u.Email,
+			Phone:    u.Phone,
+		})
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
+}
+

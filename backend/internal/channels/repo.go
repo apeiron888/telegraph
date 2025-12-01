@@ -16,6 +16,7 @@ type ChannelRepo interface {
 	AddMember(ctx context.Context, channelID, userID uuid.UUID) error
 	RemoveMember(ctx context.Context, channelID, userID uuid.UUID) error
 	UpdateMemberRole(ctx context.Context, channelID, userID uuid.UUID, role string) error
+	UpdateLastRead(ctx context.Context, channelID, userID, messageID uuid.UUID) error
 	IsMember(ctx context.Context, channelID, userID uuid.UUID) (bool, error)
 	Update(ctx context.Context, c *Channel) error
 	Delete(ctx context.Context, id uuid.UUID) error
@@ -114,6 +115,13 @@ func (r *mongoChannelRepo) Delete(ctx context.Context, id uuid.UUID) error {
 func (r *mongoChannelRepo) UpdateMemberRole(ctx context.Context, channelID, userID uuid.UUID, role string) error {
 	filter := bson.M{"id": channelID, "members.user_id": userID}
 	update := bson.M{"$set": bson.M{"members.$.role": role, "updated_at": time.Now()}}
+	_, err := r.collection.UpdateOne(ctx, filter, update)
+	return err
+}
+
+func (r *mongoChannelRepo) UpdateLastRead(ctx context.Context, channelID, userID, messageID uuid.UUID) error {
+	filter := bson.M{"id": channelID, "members.user_id": userID}
+	update := bson.M{"$set": bson.M{"members.$.last_read_message_id": messageID, "updated_at": time.Now()}}
 	_, err := r.collection.UpdateOne(ctx, filter, update)
 	return err
 }

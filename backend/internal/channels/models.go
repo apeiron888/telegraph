@@ -22,9 +22,10 @@ const (
 )
 
 type ChannelMember struct {
-	UserID   uuid.UUID `json:"user_id" bson:"user_id"`
-	Role     string    `json:"role" bson:"role"`
-	JoinedAt time.Time `json:"joined_at" bson:"joined_at"`
+	UserID            uuid.UUID  `json:"user_id" bson:"user_id"`
+	Role              string     `json:"role" bson:"role"`
+	JoinedAt          time.Time  `json:"joined_at" bson:"joined_at"`
+	LastReadMessageID *uuid.UUID `json:"last_read_message_id,omitempty" bson:"last_read_message_id,omitempty"`
 }
 
 // Channel represents a messaging channel/group/private chat
