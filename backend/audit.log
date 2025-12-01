@@ -1,0 +1,11 @@
+[2025-12-01T09:20:22+03:00] Action=channel_created UserID=1889e33a-3af2-4a68-9a68-90d870f30cc8 Resource=3851094a-feea-4fb8-b1bf-d95958db3e32 Result=success IP= Details=Created channel 'Project Alpha' (group)
+[2025-12-01T09:20:24+03:00] Action=message_sent UserID=1889e33a-3af2-4a68-9a68-90d870f30cc8 Resource=8c7a9dae-28c6-475d-bbae-0e27bd1b0d1e Result=success IP= Details=Sent message to channel 3851094a-feea-4fb8-b1bf-d95958db3e32
+[2025-12-01T09:24:17+03:00] Action=channel_created UserID=e74b9b8e-af58-422c-8b04-72ccb441ca11 Resource=f2bc3303-4e6d-4e59-af10-db02981406b8 Result=success IP= Details=Created channel '' (group)
+[2025-12-01T09:24:45+03:00] Action=channel_created UserID=e74b9b8e-af58-422c-8b04-72ccb441ca11 Resource=b365152b-2928-4cf8-af4a-d262fb2cbf20 Result=success IP= Details=Created channel 'Project Alpha' (group)
+[2025-12-01T09:27:02+03:00] Action=channel_created UserID=e74b9b8e-af58-422c-8b04-72ccb441ca11 Resource=8bfa2a77-52c2-45c4-a24a-a9b3638e532f Result=success IP= Details=Created channel 'Project Alpha' (group)
+[2025-12-01T09:28:53+03:00] Action=message_sent UserID=e74b9b8e-af58-422c-8b04-72ccb441ca11 Resource=3ccffca9-e15e-4e61-95d2-02dfc2c5a2f1 Result=success IP= Details=Sent message to channel b365152b-2928-4cf8-af4a-d262fb2cbf20
+[2025-12-01T10:11:02+03:00] Action=channel_created UserID=b55dd8fe-8f25-4c28-9d3e-8693fcf4e753 Resource=7ff6b77c-9544-4c23-9151-8c33a8676826 Result=success IP= Details=Created channel 'Project Alpha' (group)
+[2025-12-01T10:11:06+03:00] Action=message_sent UserID=b55dd8fe-8f25-4c28-9d3e-8693fcf4e753 Resource=a85dad65-a6b8-4348-a226-499dd930807a Result=success IP= Details=Sent message to channel 7ff6b77c-9544-4c23-9151-8c33a8676826
+[2025-12-01T10:31:29+03:00] Action=channel_created UserID=f3309020-50d5-42d6-ac21-7de52a78aa10 Resource=cc9f03e2-27cb-48d3-89e3-f9be66ecb7ff Result=success IP= Details=Created channel 'Project Alpha' (group)
+[2025-12-01T10:33:14+03:00] Action=channel_created UserID=f3309020-50d5-42d6-ac21-7de52a78aa10 Resource=2cba92ad-6982-4408-b750-b3c1d98d8528 Result=success IP= Details=Created channel 'Project Alpha' (group)
+[2025-12-01T10:33:29+03:00] Action=message_sent UserID=f3309020-50d5-42d6-ac21-7de52a78aa10 Resource=d5108386-158c-4e50-9e42-2d6b9382de83 Result=success IP= Details=Sent message to channel 2cba92ad-6982-4408-b750-b3c1d98d8528
