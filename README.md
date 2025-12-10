@@ -219,10 +219,6 @@ This project follows secure coding practices:
 
 Apache 2.0 - See LICENSE file
 
-## 🛡️ Security
-
-**Responsible Disclosure**: If you find a security issue, please contact security@telegraph.dev
-
 ---
 
 **Built with ❤️ for privacy and security**
