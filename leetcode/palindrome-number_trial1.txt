@@ -1,0 +1,13 @@
+class Solution:
+    def isPalindrome(self, x: int) -> bool:
+        # handle multiples of 10 (numbers can't start by 0) and negative numbers
+        if x < 0 or (x % 10 == 0 and x != 0):
+            return False
+           
+        reversed_num = 0
+        while x > reversed_num:
+            reversed_num = reversed_num * 10 + x % 10
+            x //= 10
+        
+        # Check if "x == reversed_num" for even digits or "x == reversed_num // 10" for odd digits
+        return x == reversed_num or x == reversed_num // 10
