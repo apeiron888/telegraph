@@ -5,3 +5,4 @@ for i in range(1,6):
         j = row.index(1) + 1
         move = abs(i-cr)+abs(j-cc)
         print(move)
+        
